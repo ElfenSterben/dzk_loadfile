@@ -12,6 +12,7 @@ from src.tools import collised
 from src.level import Level
 from cocos.scenes import FadeTransition
 from cocos.scenes import SplitColsTransition
+import editor
 import time
 
 
@@ -231,7 +232,7 @@ class Start(Layer):
     def __init__(self):
         super(Start, self).__init__()
         label = Label('打砖块', font_size=42)
-        label2 = Label('press any key to start')
+        label2 = Label('按下S开始,按下E键编辑关卡')
         label.position = (230, 300)
         label2.position = (240, 150)
         self.count = 0
@@ -240,8 +241,14 @@ class Start(Layer):
         self.schedule(self.update)
 
     def on_key_press(self, key, mi):
-        scenes = Scene(GuoCangDongHua())
-        director.replace(SplitColsTransition(scenes))
+        k = symbol_string(key)
+        print(k)
+        if k =='S':
+            scenes = Scene(GuoCangDongHua())
+            director.replace(SplitColsTransition(scenes))
+        elif k == 'E':
+            scenes = Scene(editor.Editor())
+            director.replace(SplitColsTransition(scenes))
 
     def update(self, dt):
         self.count += 1

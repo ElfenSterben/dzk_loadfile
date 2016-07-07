@@ -4,9 +4,8 @@ from cocos.text import Label
 from cocos.director import director
 from cocos.sprite import Sprite
 from pyglet.window.key import symbol_string
-
-
-
+from cocos.scenes import SplitColsTransition
+import main
 
 class Editor(Layer):
     is_event_handler = True
@@ -15,12 +14,18 @@ class Editor(Layer):
         super(Editor, self).__init__()
         label = Label('关卡编辑器')
         label2 = Label('按S键保存')
+        buttom = 299
+        top = 451
+        line1 = Sprite('images/line.png', position=(0, buttom), anchor=(0, 0))
+        line2 = Sprite('images/line.png', position=(0, top), anchor=(0, 0))
         self.saveflag = Label('未保存', position=(300, 0))
         label.position = (0, 0)
         label2.position = (200, 0)
         self.add(label)
         self.add(label2)
         self.add(self.saveflag)
+        self.add(line1)
+        self.add(line2)
 
         # 鼠标按下标志和坐标
         self.mouse_press_left = False
@@ -49,14 +54,15 @@ class Editor(Layer):
             for y in range(self.editor_bottom, self.editor_top, b.height):
                 self.postmp.append((x, y))
 
-    def update_input(self, x, y, b):
+    def press_left(self, x, y, b):
         if self.mouse_press_left:
-            print(2)
             b.position = (x, y)
             self.add(b)
             self.blocks.append(b)
             self.pos.append((x, y))
-        elif self.mouse_press_right:
+
+    def press_right(self, x, y, b):
+        if self.mouse_press_right:
             for b in self.blocks:
                 print(b.position)
                 if b.position == (x, y):
@@ -64,7 +70,6 @@ class Editor(Layer):
                     self.remove(b)
                     self.pos.remove((x, y))
                     break
-
 
     def update_blocks(self):
         b = Sprite('images/block.png', anchor=(0, 0))
@@ -75,8 +80,10 @@ class Editor(Layer):
             by = y + b.height
             if r.contains(bx, by):
                 if (x, y) not in self.pos:
-                    self.update_input(x, y, b)
-                    break
+                    self.press_left(x, y, b)
+                else:
+                    self.press_right(x, y, b)
+                break
 
     def update(self, dt):
         self.update_blocks()
@@ -84,13 +91,17 @@ class Editor(Layer):
     def save_file(self, path, content):
         with open(path, 'w') as f:
             for x, y in content:
-                f.writelines(str(x)+', '+str(y))
+                f.write(str(x)+', '+str(y)+'\n')
 
     def on_key_press(self, key, m):
         k = symbol_string(key)
+        print(k)
         if k == 'S':
             self.save_file('levelfile/level1.txt', self.pos)
             self.saveflag.element.text = '已保存'
+        elif k == 'P':
+            scenes = Scene(main.Start())
+            director.replace(SplitColsTransition(scenes))
 
     def on_mouse_press(self, x, y, key, m):
         '''1是左键，4是右键，2是中键'''
@@ -99,6 +110,7 @@ class Editor(Layer):
         if k == '1':
             self.mouse_press_left = status
         elif k == '4':
+            print(2)
             self.mouse_press_right = status
         self.saveflag.element.text = '未保存'
         self.mouse_x = x
