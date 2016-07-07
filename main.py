@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 
 from cocos.scene import Scene
 from cocos.layer import Layer
@@ -8,7 +8,7 @@ from cocos.sprite import Sprite
 from pyglet.window.key import symbol_string
 from src.ball import Ball
 from src.paddle import Paddle
-from src.tools import collision
+from src.tools import collised
 from src.level import Level
 from cocos.scenes import FadeTransition
 from cocos.scenes import SplitColsTransition
@@ -21,11 +21,10 @@ class GameLayer(Layer):
     def __init__(self, levels=1, golds=0, deadcount=0):
         super(GameLayer, self).__init__()
         # 添加板子和球
-
         self.paddle = Paddle('images/paddle.png')
         self.add(self.paddle.sprite)
         self.ball = Ball('images/ball.png')
-        self.ball.reset_position = (320, self.paddle.sprite.height + self.ball.sprite.height/2)
+        self.ball.reset_position = (320, self.paddle.sprite.height + self.ball.sprite.height / 2)
         self.add(self.ball.sprite)
         # 生成关卡
         self.level = Level()
@@ -34,13 +33,14 @@ class GameLayer(Layer):
         self.gold = golds
         self.deadcount = deadcount
 
-        self.hud = Label('金币: '+str(golds))
-        self.level_hud = Label('关卡: '+str(levels))
-        self.deadstu = Label('死亡: '+str(deadcount))
+        self.hud = Label('金币: ' + str(golds))
+        self.level_hud = Label('关卡: ' + str(levels))
+        self.deadstu = Label('死亡: ' + str(deadcount))
 
         self.hud.position = (0, 460)
         self.level_hud.position = (80, 460)
         self.deadstu.position = (160, 460)
+
         self.add(self.hud)
         self.add(self.level_hud)
         self.add(self.deadstu)
@@ -51,7 +51,6 @@ class GameLayer(Layer):
         self.key_pressed_up = False
         self.key_pressed_down = False
 
-        self.blocks = []
         self.reset()
 
         # 定期调用 self.update 函数
@@ -80,7 +79,7 @@ class GameLayer(Layer):
 
     def update_blocks(self):
         for b in self.level.blocks:
-            if collision(b, self.ball.sprite):
+            if collised(b, self.ball.sprite):
                 self.ball.hit()
                 self.level.blocks.remove(b)
                 self.remove(b)
@@ -96,7 +95,7 @@ class GameLayer(Layer):
             bx, by = self.ball.sprite.position
             px, py = self.paddle.sprite.position
             self.ball.sprite.position = (px, by)
-        collide = collision(self.ball.sprite, self.paddle.sprite)
+        collide = collised(self.ball.sprite, self.paddle.sprite)
         if collide:
             self.ball.hit()
         if self.ball.dead():
@@ -113,12 +112,13 @@ class GameLayer(Layer):
 
     def update_newlevel(self):
         if len(self.level.blocks) == 0:
-            self.level.next()
-            print(self.level.levels)
-            # self.reset()
-            scene = Scene(GuoCangDongHua(self.level.levels, self.gold, self.deadcount))
+            if self.level.next():
+                print(self.level.levels)
+                # self.reset()
+                scene = Scene(GuoCangDongHua(self.level.levels, self.gold, self.deadcount))
+            else:
+                scene = Scene(GameComplite(self.level.levels, self.gold, self.deadcount))
             director.replace(scene)
-            # director.replace(FadeTransition(Scene(GameLayer(self.level.levels, self.gold))))
 
     def update(self, dt):
         self.update_newlevel()
@@ -150,6 +150,29 @@ class GameLayer(Layer):
             self.key_pressed_up = status
 
 
+class GameComplite(Layer):
+    is_event_handler = True
+
+    def __init__(self, levels=1, gold=0, deadcount=0):
+        super(GameComplite, self).__init__()
+        self.levels = levels
+        self.gold = gold
+        self.deadcount = deadcount
+        label = Label('恭喜通关', font_size=42)
+        label.position = (180, 300)
+        label2 = Label('第' + str(levels) + '关  ' + '金币: ' + str(gold) + '  死亡次数: ' + str(deadcount))
+        label2.position = (230, 150)
+        label3 = Label('按任意键从新开始')
+        label3.position = (240, 120)
+        self.add(label)
+        self.add(label2)
+        self.add(label3)
+
+    def on_key_press(self, key, mi):
+        scene = Scene(Start())
+        director.replace(scene)
+
+
 class GameOver(Layer):
     is_event_handler = True
 
@@ -160,7 +183,7 @@ class GameOver(Layer):
         self.deadcount = deadcount
         label = Label('游戏结束', font_size=42)
         label.position = (180, 300)
-        label2 = Label('第'+str(levels)+'关  '+'金币: ' + str(gold) + '  死亡次数: ' + str(deadcount))
+        label2 = Label('第' + str(levels) + '关  ' + '金币: ' + str(gold) + '  死亡次数: ' + str(deadcount))
         label2.position = (230, 150)
         label3 = Label('按R键从第一关重新开始，按C键继续本关')
         label3.position = (180, 120)
@@ -230,6 +253,3 @@ class Start(Layer):
 if __name__ == '__main__':
     director.init()
     director.run(Scene(Start()))
-
-
-
