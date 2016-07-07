@@ -14,6 +14,7 @@ class Editor(Layer):
         super(Editor, self).__init__()
         label = Label('关卡编辑器')
         label2 = Label('按S键保存')
+        # 以下两个标签用于提示用户编辑窗的位置
         buttom = 299
         top = 451
         line1 = Sprite('images/line.png', position=(0, buttom), anchor=(0, 0))
@@ -21,6 +22,7 @@ class Editor(Layer):
         self.saveflag = Label('未保存', position=(300, 0))
         label.position = (0, 0)
         label2.position = (200, 0)
+
         self.add(label)
         self.add(label2)
         self.add(self.saveflag)
@@ -72,6 +74,7 @@ class Editor(Layer):
                     break
 
     def update_blocks(self):
+        '''更新砖块'''
         b = Sprite('images/block.png', anchor=(0, 0))
         b.position = (self.mouse_x, self.mouse_y)
         r = b.get_rect()

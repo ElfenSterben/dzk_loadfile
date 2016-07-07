@@ -227,6 +227,7 @@ class GuoCangDongHua(Layer):
 
 
 class Start(Layer):
+    '''开始界面'''
     is_event_handler = True
 
     def __init__(self):
