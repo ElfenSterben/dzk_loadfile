@@ -339,19 +339,6 @@ class Editor(Layer):
         elif k == '4':
             self.mouse_press_right = status
 
-
-# class MYTest(Layer):
-#     def __init__(self):
-#         super(MYTest, self).__init__()
-#         label = Label('test', position=(300, 200))
-#         self.add(label)
-#         b = Sprite('images/block.png', anchor=(0, 0))
-#         b.position = (448, 390)
-#         self.add(b)
-#         self.schedule(self.update)
-#     def update(self, st):
-#         pass
-
 if __name__ == '__main__':
     director.init()
     director.run(Scene(Editor()))

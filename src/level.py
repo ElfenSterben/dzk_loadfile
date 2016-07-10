@@ -11,9 +11,6 @@ class Level(object):
         self.blocks_pos = []
         self.blocks = []
 
-    # def start(self):
-    #     self.level_from_file()
-
     def load(self):
         '''加载关卡数据'''
         self.blocks_pos.clear()
