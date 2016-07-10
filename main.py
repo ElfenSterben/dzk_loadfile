@@ -1,10 +1,11 @@
 # coding:utf-8
-
+from cocos.menu import *
 from cocos.scene import Scene
 from cocos.layer import Layer
 from cocos.text import Label
 from cocos.director import director
 from pyglet.window.key import symbol_string
+from cocos.sprite import Sprite
 from src.ball import Ball
 from src.paddle import Paddle
 from src.tools import collised
@@ -12,6 +13,20 @@ from src.level import Level
 from src.hud import HUD
 from cocos.scenes import SplitColsTransition
 import editor
+
+
+def create_scene(layer):
+    return Scene(Background(), layer)
+
+def font_set(size, color=(255, 255, 255, 150)):
+     font_setting = {
+        'font_size': size,
+        'color': color,
+        'font_name': 'Ubuntu Mono',
+        'anchor_x': 'center',
+        'anchor_y': 'center',
+    }
+     return font_setting
 
 
 class GameLayer(Layer):
@@ -60,7 +75,7 @@ class GameLayer(Layer):
 
     def game_over(self):
         self.hud.death += 1
-        scene = Scene(GameOver(self.hud))
+        scene = create_scene(GameOver(self.hud))
         director.replace(scene)
 
     def update_hud(self):
@@ -108,9 +123,9 @@ class GameLayer(Layer):
             if self.level.next():
                 print(self.level.levels)
                 self.hud.levels += 1
-                scene = Scene(GuoCangDongHua(self.hud))
+                scene = create_scene(GuoCangDongHua(self.hud))
             else:
-                scene = Scene(GameComplite(self.hud))
+                scene = create_scene(GameComplite(self.hud))
             director.replace(scene)
 
     def update(self, dt):
@@ -152,18 +167,20 @@ class GameComplite(Layer):
         levels = self.hud.levels
         gold = self.hud.gold
         death = self.hud.death
-        label = Label('恭喜通关', font_size=42)
-        label.position = (180, 300)
-        label2 = Label('第' + str(levels) + '关  ' + '金币: ' + str(gold) + '  死亡次数: ' + str(death))
-        label2.position = (230, 150)
-        label3 = Label('按任意键从新开始')
-        label3.position = (240, 120)
+        label = Label('Game Complete', **font_set(42))
+        centerx = director.get_window_size()[0] / 2
+        label.position = (centerx, 300)
+        info = 'Level: ' + str(levels) + 'Gold: ' + str(gold) + '  Death: ' + str(death)
+        label2 = Label(info, **font_set(22))
+        label2.position = (centerx, 150)
+        label3 = Label('press any key to continue', **font_set(18))
+        label3.position = (centerx, 120)
         self.add(label)
         self.add(label2)
         self.add(label3)
 
     def on_key_press(self, key, mi):
-        scene = Scene(Start())
+        scene = create_scene(Start())
         director.replace(scene)
 
 
@@ -176,12 +193,14 @@ class GameOver(Layer):
         levels =self.hud.levels
         gold = self.hud.gold
         death = self.hud.death
-        label = Label('游戏结束', font_size=42)
-        label.position = (180, 300)
-        label2 = Label('第' + str(levels) + '关  ' + '金币: ' + str(gold) + '  死亡次数: ' + str(death))
-        label2.position = (230, 150)
-        label3 = Label('按R键从第一关重新开始，按C键继续本关')
-        label3.position = (180, 120)
+        label = Label('Game Over', **font_set(42))
+        centerx = director.get_window_size()[0] / 2
+        label.position = (centerx, 300)
+        info = 'Level: ' + str(levels) + '  Gold: ' + str(gold) + '  Death: ' + str(death)
+        label2 = Label(info, **font_set(22))
+        label2.position = (centerx, 150)
+        label3 = Label('press R to restart, press C to continue', **font_set(18))
+        label3.position = (centerx, 120)
         self.add(label)
         self.add(label2)
         self.add(label3)
@@ -190,10 +209,9 @@ class GameOver(Layer):
         k = symbol_string(key)
         if (k == 'R') or (k == 'C'):
             if k == 'R':
-                scene = Scene(GameLayer())
+                scene = create_scene(GameLayer(HUD()))
             elif k == 'C':
-                print(1)
-                scene = Scene(GameLayer(self.hud))
+                scene = create_scene(GameLayer(self.hud))
             director.replace(scene)
 
 
@@ -206,53 +224,86 @@ class GuoCangDongHua(Layer):
         levels = self.hud.levels
         gold = self.hud.gold
         death = self.hud.death
-        label = Label('第' + str(levels) + '关', font_size=42)
-        label2 = Label('金币: ' + str(gold) + '  死亡次数: ' + str(death))
-        label3 = Label('按任意键继续')
-        label.position = (230, 300)
-        label2.position = (230, 150)
-        label3.position = (240, 100)
+        ll = 'Level ' + str(levels)
+        gdl = 'Gold: ' + str(gold) + ' Death: ' + str(death)
+        color = (164, 164, 164, 200)
+        label = Label(ll, **font_set(42, color))
+        label2 = Label(gdl, **font_set(22, color))
+        label3 = Label('press any key to continue', **font_set(18, color))
+
+        centerx = director.get_window_size()[0]/2
+        label.position = (centerx, 300)
+        label2.position = (centerx, 200)
+        label3.position = (centerx, 150)
         self.add(label)
         self.add(label2)
         self.add(label3)
 
     def on_key_press(self, key, mi):
-        scene = Scene(GameLayer(self.hud))
+        self.stop()
+        scene = create_scene(GameLayer(self.hud))
         director.replace(SplitColsTransition(scene))
 
+class Background(Layer):
+    def __init__(self):
+        super(Background, self).__init__()
+        image = Sprite('images/back.jpg', anchor=(0, 0))
+        window_size = director.get_window_size()
+        width, height = window_size
+        wscale = width / image.width
+        hscale = height / image.height
+        image.scale = max(wscale, hscale)
+        self.add(image)
 
-class Start(Layer):
+
+class Start(Menu):
     '''开始界面'''
     is_event_handler = True
-
     def __init__(self):
         super(Start, self).__init__()
-        label = Label('打砖块', font_size=42)
-        label2 = Label('按下S开始,按下E键编辑关卡')
-        label.position = (230, 300)
-        label2.position = (240, 150)
-        self.count = 0
-        self.add(label)
-        self.add(label2)
-        self.schedule(self.update)
+        font_item ={'font_name': 'Ubuntu Mono', 'font_size': 42, 'color': (220,87, 18, 180)}
+        font_item_selected = {'font_name': 'Ubuntu Mono', 'font_size': 60, 'color': (244, 208, 0, 180)}
+        font_title ={
+            'font_name': 'Arial',
+            'font_size': 56,
+            'color': (229, 131, 8, 200),
+            'bold': True,
+            'italic': False,
+            'anchor_y': 'center',
+            'anchor_x': 'center',
+            'dpi': 96,
+            'x': 0, 'y': 0,
+        }
+        play = MenuItem('Play', self.on_play)
+        editor = MenuItem('Edit Levels', self.on_editor)
+        quit = MenuItem('Quit', self.on_quit)
+        items = []
+        items.append(play)
+        items.append(editor)
+        items.append(quit)
+        self.title = 'Arkanoid'
+        self.font_title = font_title
+        self.font_item = font_item
+        self.font_item_selected = font_item_selected
+        self.create_menu(items, shake(), shake_back())
 
-    def on_key_press(self, key, mi):
-        k = symbol_string(key)
-        print(k)
-        if k == 'S':
-            scenes = Scene(GuoCangDongHua(HUD()))
-            director.replace(SplitColsTransition(scenes))
-        elif k == 'E':
-            scenes = Scene(editor.Editor())
-            director.replace(SplitColsTransition(scenes))
+    def on_test(self):
+        pass
 
-    def update(self, dt):
-        self.count += 1
-        if self.count == 50:
-            self.count = 0
-            self.get_children()[1].visible = not self.get_children()[1].visible
+    def on_quit(self):
+        quit()
+
+    def on_play(self):
+        self.stop()
+        scenes = create_scene(GuoCangDongHua(HUD()))
+        director.replace(SplitColsTransition(scenes))
+
+    def on_editor(self):
+        self.stop()
+        scenes = create_scene(editor.Editor())
+        director.replace(SplitColsTransition(scenes))
 
 
 if __name__ == '__main__':
     director.init()
-    director.run(Scene(Start()))
+    director.run(create_scene(Start()))
