@@ -18,7 +18,7 @@ class Level(object):
         try:
             with open(path, 'r') as f:
                 lines = f.readlines()
-                for b in lines[1:]:
+                for b in lines:
                     pos = b.split(', ')
                     x = int(pos[0])
                     y = int(pos[1])

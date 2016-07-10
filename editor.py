@@ -118,7 +118,7 @@ class Editor(Layer):
                 offect_y = 150
             # 每一排5个选择 所以用 数量 i 除以 5 取余
             offect_x = 640 * page + 40 + (i % 5) * 120
-            label = Label('第' + str(i + 1) + '关', position=(offect_x, offect_y))
+            label = Label('第' + str(levels[i]) + '关', position=(offect_x, offect_y))
             self.add(label)
             # 40,20 宽度和高度是试验出来的
             r = Rect(label.x, label.y, 40, 20)
@@ -304,7 +304,7 @@ class Editor(Layer):
     def save_file(self, path, content):
         with open(path, 'w') as f:
             for x, y in content:
-                f.write(str(int(x))+', '+str(int(y))+'\n')
+                f.write(str(x)+', '+str(y)+'\n')
         self.reset_level_select()
 
     def on_key_press(self, key, m):
@@ -314,7 +314,7 @@ class Editor(Layer):
             self.reset_level_select()
             self.saveflag.element.text = '已保存'
         elif k == 'P':      # 按P键开始游戏
-            scenes = Scene(main.Start())
+            scenes = Scene(main.Background(), main.Start())
             director.replace(SplitColsTransition(scenes))
 
     def on_mouse_press(self, x, y, key, m):
@@ -333,7 +333,6 @@ class Editor(Layer):
         k = symbol_string(key)
         status = False
         if k == '1':
-
             self.page_is_pressing = status
             self.mouse_press_left = status
         elif k == '4':
@@ -341,5 +340,5 @@ class Editor(Layer):
 
 if __name__ == '__main__':
     director.init()
-    director.run(Scene(Editor()))
+    director.run(Scene(main.Background(), Editor()))
 
