@@ -6,10 +6,11 @@ from cocos.sprite import Sprite
 from pyglet.window.key import symbol_string
 from cocos.scenes import SplitColsTransition
 from cocos.rect import Rect
-import glob
-import main
-import os
 from src.level import Level
+import glob
+# import main
+import os
+
 
 class Editor(Layer):
     is_event_handler = True
@@ -116,7 +117,6 @@ class Editor(Layer):
             # 每一排5个选择 所以用 数量 i 除以 5 取余
             offect_x = 640 * page + 40 + (i % 5) * 120
             label = Label('第' + str(i + 1) + '关', position=(offect_x, offect_y))
-            # self.level_select_label.append(label)
             self.add(label)
             # 40,20 宽度和高度是试验出来的
             r = Rect(label.x, label.y, 40, 20)
@@ -158,10 +158,8 @@ class Editor(Layer):
 
     def reset_level_select(self):
         for r, l in self.level_select:
-            # self.remove(r)
             self.remove(l)
         for r, l in self.page_select:
-            # self.remove(r)
             self.remove(l)
         self.level_select.clear()
         self.page_select.clear()
