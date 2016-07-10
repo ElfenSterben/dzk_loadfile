@@ -8,7 +8,7 @@ from cocos.scenes import SplitColsTransition
 from cocos.rect import Rect
 from src.level import Level
 import glob
-# import main
+import main
 import os
 
 
@@ -18,10 +18,11 @@ class Editor(Layer):
     def __init__(self):
         super(Editor, self).__init__()
         label = Label('关卡编辑器', position=(0, 0))
-        label2 = Label('按S键保存', position=(200, 0))
+        label2 = Label('按S键保存', position=(100, 0))
+        play_label = Label('P键开始游戏',position=(270, 0))
         self.new_level_label = Label('新建关卡', position=(20, 50))
         self.delete_level_label = Label('删除当前关卡', position=(100, 50))
-        self.saveflag = Label('未保存', position=(300, 0))
+        self.saveflag = Label('未保存', position=(200, 0))
         self.edit_level = Label('当前编辑关卡: ', position=(400, 0))
         self.yes_label = Label('是', position=(280, 50))
         self.no_label = Label('否', position=(320, 50))
@@ -42,6 +43,7 @@ class Editor(Layer):
 
         self.add(label)
         self.add(label2)
+        self.add(play_label)
         self.add(self.saveflag)
         self.add(line1)
         self.add(line2)
