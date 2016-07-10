@@ -244,7 +244,7 @@ class Start(Layer):
     def on_key_press(self, key, mi):
         k = symbol_string(key)
         print(k)
-        if k =='S':
+        if k == 'S':
             scenes = Scene(GuoCangDongHua())
             director.replace(SplitColsTransition(scenes))
         elif k == 'E':

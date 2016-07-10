@@ -25,7 +25,7 @@ class Level(object):
                     pos = b.split(', ')
                     x = int(pos[0])
                     y = int(pos[1])
-                    self.blocks_pos.append([x, y])
+                    self.blocks_pos.append((x, y))
                 return True
         except:
             return False
@@ -37,12 +37,11 @@ class Level(object):
         positions = self.blocks_pos
         number_of_blocks = len(positions)
         for i in range(number_of_blocks):
-            b = Sprite('images/block.png')
+            b = Sprite('images/smallblock.png')
             x, y = positions[i]
-            bx = x + b.width / 2
-            by = y + b.height / 2
+            bx = int(x + b.width / 2)
+            by = int(y + b.height / 2)
             b.position = (bx, by)
-            # self.add(b)
             self.blocks.append(b)
 
     def next(self):
