@@ -7,6 +7,7 @@ from pyglet.window.key import symbol_string
 from cocos.scenes import SplitColsTransition
 from cocos.rect import Rect
 from src.level import Level
+from src.block import Block
 import glob
 import main
 import os
@@ -19,16 +20,19 @@ class Editor(Layer):
         super(Editor, self).__init__()
         label = Label('关卡编辑器', position=(0, 0))
         label2 = Label('按S键保存', position=(100, 0))
-        play_label = Label('P键开始游戏',position=(270, 0))
+        play_label = Label('P键开始游戏', position=(270, 0))
+        self.block_select_white = Block()
+        self.block_select_blue = Block(live=1)
+        self.block_select_white.sprite.position = (300, 50)
+        self.block_select_blue.sprite.position = (400, 50)
         self.new_level_label = Label('新建关卡', position=(20, 50))
         self.delete_level_label = Label('删除当前关卡', position=(100, 50))
         self.saveflag = Label('未保存', position=(200, 0))
         self.edit_level = Label('当前编辑关卡: ', position=(400, 0))
-        self.yes_label = Label('是', position=(280, 50))
-        self.no_label = Label('否', position=(320, 50))
+        self.yes_label = Label('是', position=(220, 50))
+        self.no_label = Label('否', position=(250, 50))
         self.yes_label.visible = False
         self.no_label.visible = False
-        self.block_image_path = 'images/smallblock.png'
         # 编辑区属性
         self.editor_bottom = 250
         self.editor_top = 450
@@ -43,6 +47,8 @@ class Editor(Layer):
 
         self.add(label)
         self.add(label2)
+        self.add(self.block_select_white.sprite)
+        self.add(self.block_select_blue.sprite)
         self.add(play_label)
         self.add(self.saveflag)
         self.add(line1)
@@ -59,11 +65,14 @@ class Editor(Layer):
         self.mouse_x = 0
         self.mouse_y = 0
 
+        # 砖块的生命
+        self.block_live = 0
+
         # 生成砖块可以添加的位置
         self.recttmp = []
         self.create_grid()
-        # 存储坐标
-        self.pos = []
+        # 存储砖块属性
+        # self.props = []
         # 存储bloks
         self.blocks = []
 
@@ -85,15 +94,15 @@ class Editor(Layer):
         self.schedule(self.update)
 
     def create_grid(self):
-        b = Sprite(self.block_image_path)
+        b = Block()
         ewidth = self.editor_right - self.editor_left
-        left = int(self.editor_left + ewidth % b.width / 2)
+        left = int(self.editor_left + ewidth % b.sprite.width / 2)
         right = self.editor_right
         top = self.editor_top
         bottom = self.editor_bottom
-        for x in range(left, right, b.width):
-            for y in range(bottom, top, b.height):
-                self.recttmp.append(Rect(x, y, b.width, b.height))
+        for x in range(left, right, b.sprite.width):
+            for y in range(bottom, top, b.sprite.height):
+                self.recttmp.append(Rect(x, y, b.sprite.width, b.sprite.height))
 
     def get_all_level(self):
         '''获取已存在的关卡'''
@@ -244,19 +253,27 @@ class Editor(Layer):
         level.reset()
         # 删除已存在的块
         for b in self.blocks:
-            self.remove(b)
+            self.remove(b.sprite)
 
         # 清空存储的块和坐标
         self.blocks.clear()
-        self.pos.clear()
+        # self.props.clear()
 
         # 添加新的块
         for b in level.blocks:
-            self.add(b)
+            self.add(b.sprite)
             self.blocks.append(b)
         # 添加新的坐标
-        for pos in level.blocks_pos:
-            self.pos.append(pos)
+        # for props in level.blocks_props:
+        #     self.props.append(props)
+
+    def select_block(self, x, y):
+        rblue = self.block_select_blue.sprite.get_rect()
+        rwhite = self.block_select_white.sprite.get_rect()
+        if rblue.contains(x, y):
+            self.block_live = 1
+        elif rwhite.contains(x, y):
+            self.block_live = 0
 
     def select_level(self, x, y):
         for r, l in self.level_select:
@@ -266,22 +283,20 @@ class Editor(Layer):
                 self.reset_blocks()
 
     def add_block(self, x, y):
-        b = Sprite(self.block_image_path, anchor=(0, 0))
+        b = Block(live=self.block_live)
         for r in self.recttmp:
-            if r.contains(x, y) and (r.position not in self.pos):
-                b.position = r.position
-                self.add(b)
+            if r.contains(x, y) and all([r.position != b.sprite.position for b in self.blocks]):
+                b.sprite.position = r.position
+                self.add(b.sprite)
                 self.blocks.append(b)
-                self.pos.append(r.position)
                 break
 
     def delete_block(self, x, y):
         for b in self.blocks:
-            r = b.get_rect()
-            if r.contains(x, y) and (r.position in self.pos):
+            r = b.sprite.get_rect()
+            if r.contains(x, y):
                 self.blocks.remove(b)
-                self.remove(b)
-                self.pos.remove(r.position)
+                self.remove(b.sprite)
                 break
 
     def update_input(self):
@@ -293,6 +308,7 @@ class Editor(Layer):
             self.select_page(x, y)
             self.new_level(x, y)
             self.delete_level(x, y)
+            self.select_block(x, y)
         elif self.mouse_press_right:
             self.delete_block(x, y)
 
@@ -303,14 +319,17 @@ class Editor(Layer):
 
     def save_file(self, path, content):
         with open(path, 'w') as f:
-            for x, y in content:
-                f.write(str(x)+', '+str(y)+'\n')
+            for b in content:
+                x, y = b.sprite.position
+                live = b.live
+                props = '{}, {}, {}\n'.format(x, y, live)
+                f.write(props)
         self.reset_level_select()
 
     def on_key_press(self, key, m):
         k = symbol_string(key)
         if k == 'S':        # 按S键保存
-            self.save_file('levelfile/level'+str(self.save_as)+'.txt', self.pos)
+            self.save_file('levelfile/level'+str(self.save_as)+'.txt', self.blocks)
             self.reset_level_select()
             self.saveflag.element.text = '已保存'
         elif k == 'P':      # 按P键开始游戏

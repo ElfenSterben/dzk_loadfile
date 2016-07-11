@@ -67,11 +67,11 @@ class GameLayer(Layer):
         self.ball.reset()
         # 清空界面上的block
         for b in self.level.blocks:
-            self.remove(b)
+            self.remove(b.sprite)
         # 再初始化新的砖块
         self.level.reset()
         for b in self.level.blocks:
-            self.add(b)
+            self.add(b.sprite)
 
     def game_over(self):
         self.hud.death += 1
@@ -83,10 +83,14 @@ class GameLayer(Layer):
 
     def update_blocks(self):
         for b in self.level.blocks:
-            if collised(b, self.ball.sprite):
+            if collised(b.sprite, self.ball.sprite):
                 self.ball.hit()
-                self.level.blocks.remove(b)
-                self.remove(b)
+                b.live -= 1
+                if b.live < 0:
+                    self.level.blocks.remove(b)
+                    self.remove(b.sprite)
+                else:
+                    b.reset()
                 self.hud.gold += 1
                 self.update_hud()
                 print('金币:', self.hud.gold)
@@ -209,7 +213,7 @@ class GameOver(Layer):
         k = symbol_string(key)
         if (k == 'R') or (k == 'C'):
             if k == 'R':
-                scene = create_scene(GameLayer(HUD()))
+                scene = create_scene(Start())
             elif k == 'C':
                 scene = create_scene(GameLayer(self.hud))
             director.replace(scene)
@@ -261,7 +265,7 @@ class Start(Menu):
     is_event_handler = True
     def __init__(self):
         super(Start, self).__init__()
-        font_item ={'font_name': 'Ubuntu Mono', 'font_size': 42, 'color': (220,87, 18, 180)}
+        font_item = {'font_name': 'Ubuntu Mono', 'font_size': 42, 'color': (220,87, 18, 180)}
         font_item_selected = {'font_name': 'Ubuntu Mono', 'font_size': 60, 'color': (244, 208, 0, 180)}
         font_title ={
             'font_name': 'Arial',
