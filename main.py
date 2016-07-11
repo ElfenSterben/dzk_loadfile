@@ -105,10 +105,12 @@ class GameLayer(Layer):
             self.ball.sprite.position = (px, by)
         collide = collised(self.ball.sprite, self.paddle.sprite)
         if collide:
-            if self.paddle.move_left:
-                self.ball.speedx -= 0.5
-            elif self.paddle.move_right:
-                self.ball.speedx += 0.5
+            xisu = 1
+            bx, by = self.ball.sprite.position
+            px, py = self.paddle.sprite.position
+            offect_scale = (bx - px) / (self.paddle.sprite.width / 2)
+            ball_speedx_change = offect_scale * xisu
+            self.ball.speedx += ball_speedx_change
             self.ball.hit()
         if self.ball.dead():
             self.game_over()
