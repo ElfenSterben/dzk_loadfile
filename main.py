@@ -35,6 +35,7 @@ class GameLayer(Layer):
     def __init__(self, hud):
         super(GameLayer, self).__init__()
         # 添加板子和球
+        self.is_on_exiting = True
         self.paddle = Paddle('images/paddle.png')
         self.add(self.paddle.sprite)
         self.ball = Ball('images/ball.png')
@@ -75,6 +76,7 @@ class GameLayer(Layer):
 
     def game_over(self):
         self.hud.death += 1
+        self.is_on_exiting = False
         scene = create_scene(GameOver(self.hud))
         director.replace(scene)
 
@@ -84,6 +86,7 @@ class GameLayer(Layer):
     def update_blocks(self):
         for b in self.level.blocks:
             if collised(b.sprite, self.ball.sprite):
+                print(1)
                 self.ball.hit()
                 b.live -= 1
                 if b.live < 0:
@@ -126,6 +129,7 @@ class GameLayer(Layer):
 
     def update_newlevel(self):
         if len(self.level.blocks) == 0:
+            self.is_on_exiting = False
             if self.level.next():
                 print(self.level.levels)
                 self.hud.levels += 1
@@ -135,12 +139,13 @@ class GameLayer(Layer):
             director.replace(scene)
 
     def update(self, dt):
-        self.update_newlevel()
-        self.update_ball()
-        self.update_paddle()
-        self.update_input()
-        self.update_blocks()
-        self.update_hud()
+        if self.is_on_exiting:
+            self.update_newlevel()
+            self.update_ball()
+            self.update_paddle()
+            self.update_input()
+            self.update_blocks()
+            self.update_hud()
 
     def on_key_press(self, key, modifiers):
         k = symbol_string(key)
@@ -170,6 +175,7 @@ class GameComplite(Layer):
     def __init__(self, hud):
         super(GameComplite, self).__init__()
         self.hud = hud
+        self.is_on_exiting = True
         levels = self.hud.levels
         gold = self.hud.gold
         death = self.hud.death
@@ -186,8 +192,10 @@ class GameComplite(Layer):
         self.add(label3)
 
     def on_key_press(self, key, mi):
-        scene = create_scene(Start())
-        director.replace(scene)
+        if self.is_on_exiting:
+            self.is_on_exiting = False
+            scene = create_scene(Start())
+            director.replace(scene)
 
 
 class GameOver(Layer):
@@ -196,6 +204,7 @@ class GameOver(Layer):
     def __init__(self, hud):
         super(GameOver, self).__init__()
         self.hud = hud
+        self.is_on_exiting = True
         levels =self.hud.levels
         gold = self.hud.gold
         death = self.hud.death
@@ -212,13 +221,15 @@ class GameOver(Layer):
         self.add(label3)
 
     def on_key_press(self, key, mi):
-        k = symbol_string(key)
-        if (k == 'R') or (k == 'C'):
-            if k == 'R':
-                scene = create_scene(Start())
-            elif k == 'C':
-                scene = create_scene(GameLayer(self.hud))
-            director.replace(scene)
+        if self.is_on_exiting:
+            k = symbol_string(key)
+            if (k == 'R') or (k == 'C'):
+                self.is_on_exiting = False
+                if k == 'R':
+                    scene = create_scene(Start())
+                elif k == 'C':
+                    scene = create_scene(GameLayer(self.hud))
+                director.replace(SplitColsTransition(scene))
 
 
 class GuoCangDongHua(Layer):
@@ -237,6 +248,8 @@ class GuoCangDongHua(Layer):
         label2 = Label(gdl, **font_set(22, color))
         label3 = Label('press any key to continue', **font_set(18, color))
 
+        self.is_on_exiting = True
+
         centerx = director.get_window_size()[0]/2
         label.position = (centerx, 300)
         label2.position = (centerx, 200)
@@ -246,19 +259,20 @@ class GuoCangDongHua(Layer):
         self.add(label3)
 
     def on_key_press(self, key, mi):
-        self.stop()
-        scene = create_scene(GameLayer(self.hud))
-        director.replace(SplitColsTransition(scene))
+        if self.is_on_exiting:
+            self.is_on_exiting = False
+            scene = create_scene(GameLayer(self.hud))
+            director.replace(SplitColsTransition(scene))
 
 class Background(Layer):
     def __init__(self):
         super(Background, self).__init__()
         image = Sprite('images/back.jpg', anchor=(0, 0))
-        window_size = director.get_window_size()
-        width, height = window_size
-        wscale = width / image.width
-        hscale = height / image.height
-        image.scale = max(wscale, hscale)
+        # window_size = director.get_window_size()
+        # width, height = window_size
+        # wscale = width / image.width
+        # hscale = height / image.height
+        # image.scale = max(wscale, hscale)
         self.add(image)
 
 
@@ -267,6 +281,7 @@ class Start(Menu):
     is_event_handler = True
     def __init__(self):
         super(Start, self).__init__()
+        self.is_on_exiting = True
         font_item = {'font_name': 'Ubuntu Mono', 'font_size': 42, 'color': (220,87, 18, 180)}
         font_item_selected = {'font_name': 'Ubuntu Mono', 'font_size': 60, 'color': (244, 208, 0, 180)}
         font_title ={
@@ -288,8 +303,10 @@ class Start(Menu):
         items.append(editor)
         items.append(quit)
         self.title = 'Arkanoid'
-        self.font_title = font_title
-        self.font_item = font_item
+        for key in font_title:
+            self.font_title[key] = font_title.get(key)
+        for key in font_item:
+            self.font_item[key] = font_item.get(key)
         self.font_item_selected = font_item_selected
         self.create_menu(items, shake(), shake_back())
 
@@ -300,14 +317,16 @@ class Start(Menu):
         quit()
 
     def on_play(self):
-        self.stop()
-        scenes = create_scene(GuoCangDongHua(HUD()))
-        director.replace(SplitColsTransition(scenes))
+        if self.is_on_exiting:
+            self.is_on_exiting = False
+            scenes = create_scene(GuoCangDongHua(HUD()))
+            director.replace(SplitColsTransition(scenes))
 
     def on_editor(self):
-        self.stop()
-        scenes = create_scene(editor.Editor())
-        director.replace(SplitColsTransition(scenes))
+        if self.is_on_exiting:
+            self.is_on_exiting = False
+            scenes = create_scene(editor.Editor())
+            director.replace(SplitColsTransition(scenes))
 
 
 if __name__ == '__main__':

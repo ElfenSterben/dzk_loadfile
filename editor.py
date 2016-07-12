@@ -9,7 +9,7 @@ from cocos.rect import Rect
 from src.level import Level
 from src.block import Block
 import glob
-import main
+# import main
 import os
 
 
@@ -21,10 +21,10 @@ class Editor(Layer):
         label = Label('关卡编辑器', position=(0, 0))
         label2 = Label('按S键保存', position=(100, 0))
         play_label = Label('P键开始游戏', position=(270, 0))
-        self.block_select_white = Block()
-        self.block_select_blue = Block(live=1)
-        self.block_select_white.sprite.position = (300, 50)
-        self.block_select_blue.sprite.position = (400, 50)
+        self.block_select = []
+
+        # self.block_select_white.sprite.position = (300, 50)
+        # self.block_select_blue.sprite.position = (400, 50)
         self.new_level_label = Label('新建关卡', position=(20, 50))
         self.delete_level_label = Label('删除当前关卡', position=(100, 50))
         self.saveflag = Label('未保存', position=(200, 0))
@@ -47,8 +47,7 @@ class Editor(Layer):
 
         self.add(label)
         self.add(label2)
-        self.add(self.block_select_white.sprite)
-        self.add(self.block_select_blue.sprite)
+
         self.add(play_label)
         self.add(self.saveflag)
         self.add(line1)
@@ -67,6 +66,8 @@ class Editor(Layer):
 
         # 砖块的生命
         self.block_live = 0
+        # 生成砖块选择
+        self.create_block_select()
 
         # 生成砖块可以添加的位置
         self.recttmp = []
@@ -92,6 +93,14 @@ class Editor(Layer):
         self.reset_blocks()
 
         self.schedule(self.update)
+
+    def create_block_select(self):
+        b = Block()
+        for i in range(len(b.colors)):
+            b = Block(live=i)
+            b.sprite.position = (300 + i*100, 50)
+            self.block_select.append(b)
+            self.add(b.sprite)
 
     def create_grid(self):
         b = Block()
@@ -268,12 +277,11 @@ class Editor(Layer):
         #     self.props.append(props)
 
     def select_block(self, x, y):
-        rblue = self.block_select_blue.sprite.get_rect()
-        rwhite = self.block_select_white.sprite.get_rect()
-        if rblue.contains(x, y):
-            self.block_live = 1
-        elif rwhite.contains(x, y):
-            self.block_live = 0
+        for b in self.block_select:
+            r = b.sprite.get_rect()
+            if r.contains(x, y):
+                self.block_live = b.live
+
 
     def select_level(self, x, y):
         for r, l in self.level_select:
