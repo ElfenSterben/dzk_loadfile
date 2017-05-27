@@ -16,17 +16,18 @@ import editor
 
 
 def create_scene(layer):
-    return Scene(Background(), layer)
+    return Scene(layer)
+
 
 def font_set(size, color=(255, 255, 255, 150)):
-     font_setting = {
+    font_setting = {
         'font_size': size,
         'color': color,
         'font_name': 'Ubuntu Mono',
         'anchor_x': 'center',
         'anchor_y': 'center',
     }
-     return font_setting
+    return font_setting
 
 
 class GameLayer(Layer):

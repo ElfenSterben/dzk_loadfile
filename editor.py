@@ -9,7 +9,7 @@ from cocos.rect import Rect
 from src.level import Level
 from src.block import Block
 import glob
-# import main
+
 import os
 
 
@@ -366,6 +366,7 @@ class Editor(Layer):
             self.mouse_press_right = status
 
 if __name__ == '__main__':
+    import main
     director.init()
     director.run(Scene(main.Background(), Editor()))
 
